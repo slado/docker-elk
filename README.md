@@ -1,9 +1,97 @@
-# Elastic stack (ELK) on Docker
 
-[![Join the chat at https://gitter.im/deviantony/docker-elk](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deviantony/docker-elk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Elastic Stack version](https://img.shields.io/badge/ELK-6.6.0-blue.svg?style=flat)](https://github.com/deviantony/docker-elk/issues/362)
-[![Build Status](https://api.travis-ci.org/deviantony/docker-elk.svg?branch=master)](https://travis-ci.org/deviantony/docker-elk)
 
+# Elastic stack with RabbitMQ (RELK) on Docker for Serilog
+
+Toto som forkol z [deviantony/docker-elk](https://github.com/deviantony/docker-elk) za co mu pekne dakujem.
+
+## Spustenie RELK
+[Spustenie dockera je popisane nizssie v jeho texte](#docker-info)
+
+## Logovanie prostrednictvom Serilog
+
+### Do aplikacie pridat nuget pre Serilog
+```powershell
+Install-Package Serilog
+Install-Package Serilog.Enrichers.Environment
+Install-Package Serilog.Enrichers.Process
+Install-Package Serilog.Enrichers.Thread
+Install-Package Serilog.Settings.Configuration
+Install-Package Serilog.Sinks.Console
+Install-Package Serilog.Sinks.File
+Install-Package Serilog.Sinks.RabbitMQ
+```
+Ak je to ASP.NET core aplikacia, pridat
+```powershell
+    Install-Package Serilog.AspNetCore
+```
+
+### Nakonfigurovat Serilog
+```csharp
+var rmqcfg = new RabbitMQConfiguration();
+rmqcfg.Hostname = Configuration["RabbitMQLog:hostname"];
+rmqcfg.Username = Configuration["RabbitMQLog:user"];
+rmqcfg.Password =  Configuration["RabbitMQLog:password"];
+rmqcfg.Exchange = Configuration["RabbitMQLog:exchange"];
+rmqcfg.RouteKey = Configuration["RabbitMQLog:key"];
+rmqcfg.Port = Convert.ToInt32(Configuration["RabbitMQLog:port"]);
+
+Log.Logger = new LoggerConfiguration()
+.ReadFrom.Configuration(Configuration)
+.Enrich.FromLogContext()
+.WriteTo.RabbitMQ(rmqcfg, new JsonFormatter())
+.CreateLogger();
+```
+
+> Serilog si vie nacitat konfiguraciu z json, ale zatial nie vsetku `ReadFrom.Configuration(Configuration)`
+Preto som musel do appsettings.json pridat nastavenia pre RabbitMQ do samostatnej sekcie a citat ich priamo z konfigu.
+Takto vyzera appsettings.json
+
+```json
+"Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.Console" ],
+    "MinimumLevel": "Debug",
+    "WriteTo": [
+      { "Name": "Console" },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "C:\\Logs\\chdu.log",
+          "rollingInterval": "Day"
+        }
+      }
+    ],
+    "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId", "WithProcessId", "WithProcessName" ],
+    "Properties": {
+      "Application": "CHDUTest_001"
+    }
+  },
+
+  "RabbitMQLog": {
+    "hostname": "10.10.1.199",
+    "port": "5672",
+    "user": "guest",
+    "password": "guest",
+    "exchange": "logging.application.serilog",
+    "key": "#.#.#"
+  },
+
+```
+
+O viac sa netreba starat. Serilog bude logovat na konzolu, do suboru `path` a do RabbitMQ exchange, ktory ma v konfigu. 
+
+Pre tento ucel bezi cely RELK stack (RabbitMQ, Elastic, Logstash, Kibana) na mojom pocitaci - sk0050.datapac.local (10.10.1.199)
+
+[Kibana http://10.10.1.199:5601](http://10.10.1.199:5601)
+
+[RabbitMQ Management http://10.10.1.199:15672](http://10.10.1.199:15672) login guest:guest
+
+
+# Docker info
 Run the latest version of the [Elastic stack](https://www.elastic.co/elk-stack) with Docker and Docker Compose.
 
 It will give you the ability to analyze any data set by using the searching/aggregation capabilities of Elasticsearch

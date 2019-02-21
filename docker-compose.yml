@@ -49,6 +49,15 @@ services:
     depends_on:
       - elasticsearch
 
+  rabbitmq:
+    build: rabbitmq/
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - elk
+
+
 networks:
 
   elk:
