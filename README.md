@@ -83,7 +83,7 @@ Takto vyzera appsettings.json
 ```
 
 O viac sa netreba starat. Serilog bude logovat na konzolu, do suboru `path` a do RabbitMQ exchange, ktory ma v konfigu. 
-> Dolezite: nazov aplikacie alebo instancie sa v Serilog da spravit napriklad cez property. Moja aplikacia sa vola **CHDUTest_001**. Treba zmenit property Application na spravny nazov aplikacie, ktora loguje. Alebo to dat do kodu, ale v konfigu je to rozumnejsie.
+> **DOLEZITE:** nazov aplikacie alebo instancie sa v Serilog da spravit napriklad cez property. Moja aplikacia sa vola **CHDUTest_001**. Treba zmenit property Application na spravny nazov aplikacie, ktora loguje. Alebo to dat do kodu, ale v konfigu je to rozumnejsie. Pomocou application sa da nasledne v Kibana rozlisovat zdroj logov.
 ```json
     "Properties": {
       "Application": "CHDUTest_001"
