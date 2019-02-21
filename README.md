@@ -26,7 +26,7 @@ Ak je to ASP.NET core aplikacia, pridat
 ```
 
 ### Nakonfigurovat Serilog
-```csharp
+```cs
 var rmqcfg = new RabbitMQConfiguration();
 rmqcfg.Hostname = Configuration["RabbitMQLog:hostname"];
 rmqcfg.Username = Configuration["RabbitMQLog:user"];
